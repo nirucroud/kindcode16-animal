@@ -32,23 +32,16 @@ const questions=[
 '急がず慎重に判断する方だ',
 '深く考えてから動くことが多い',
 '誰かの支えになると、自分にも力がわいてくる'
-].map((text,guide)=>({text,guide}));
+];
 let idx=0,score=Array(types.length).fill(0),history=[];
 const answerLabels=['とても当てはまる','少し当てはまる','どちらともいえない','あまり当てはまらない','当てはまらない'];
-function scoreTargets(questionIndex,answerIndex){
-  const base=(questionIndex+answerIndex*3)%types.length;
-  return [base,(base+5)%types.length,(base+11)%types.length,(questionIndex*7+answerIndex*2)%types.length];
-}
-function answerWeight(answerIndex,rank){
-  const table=[6,4,3,2];
-  return table[rank]-(answerIndex===2&&rank>1?1:0);
-}
+function scoreTargets(questionIndex,answerIndex){const base=(questionIndex+answerIndex*3)%types.length;return [base,(base+5)%types.length,(base+11)%types.length,(questionIndex*7+answerIndex*2)%types.length]}
+function answerWeight(answerIndex,rank){const table=[6,4,3,2];return table[rank]-(answerIndex===2&&rank>1?1:0)}
 function responseSignature(){return history.reduce((sum,item,i)=>sum+(item.answerIndex+1)*(i+3)*(i+7),0)%types.length}
 function go(id){if(id==='book')id='animalBook';document.body.dataset.page=id;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');scrollTo(0,0);if(id==='quiz')startQuiz()}document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function startQuiz(){idx=0;score=Array(types.length).fill(0);history=[];renderQ()}
 function applyAnswer(questionIndex,answerIndex,direction=1){scoreTargets(questionIndex,answerIndex).forEach((typeIndex,rank)=>score[typeIndex]+=direction*answerWeight(answerIndex,rank))}
-function renderAnimals(q){const stage=document.getElementById('quizAnimalStage');if(!stage)return;const left=types[(q.guide+5)%types.length];const main=types[q.guide];const right=types[(q.guide+11)%types.length];stage.innerHTML=`<img class="quizAnimalSide" src="${left.img}" alt=""><img class="quizAnimalMain" src="${main.img}" alt=""><img class="quizAnimalSide" src="${right.img}" alt="">`}
-function renderQ(){let q=questions[idx];progress.textContent=`${idx+1} / ${questions.length}`;qtext.textContent=q.text;renderAnimals(q);answers.innerHTML='';answerLabels.forEach((t,n)=>{let b=document.createElement('button');b.textContent=t;b.onclick=()=>{applyAnswer(idx,n);history[idx]={answerIndex:n};idx++;idx<questions.length?renderQ():showResult()};answers.appendChild(b)});back.style.visibility=idx?'visible':'hidden'}
+function renderQ(){let q=questions[idx];progress.textContent=`${idx+1} / ${questions.length}`;qtext.textContent=q;answers.innerHTML='';answerLabels.forEach((t,n)=>{let b=document.createElement('button');b.textContent=t;b.onclick=()=>{applyAnswer(idx,n);history[idx]={answerIndex:n};idx++;idx<questions.length?renderQ():showResult()};answers.appendChild(b)});back.style.visibility=idx?'visible':'hidden'}
 back.onclick=()=>{if(idx>0){idx--;let previous=history[idx];if(previous)applyAnswer(idx,previous.answerIndex,-1);history.length=idx;renderQ()}};
 function showResult(){let signature=responseSignature();let adjusted=score.map((value,i)=>value+(i===signature?0.75:0)+(((signature+i*3)%7)*0.01));let max=adjusted.indexOf(Math.max(...adjusted));let t=types[max];resultTitle.textContent=t.name;resultSub.textContent=`${t.id}｜${t.sub}`;resultImg.src=t.img;go('result')}
 const books=['animal1.jpeg','animal2.jpeg','mystery1.jpeg','mystery2.jpeg'];function showBook(i){go(i<2?'animalBook':'mysteryBook')}window.showBook=showBook;
